@@ -19,7 +19,6 @@ const val MINT_ROOT_URL = "https://mint.intuit.com"
 const val MINT_ACCOUNTS_URL = "https://accounts.intuit.com"
 
 @Component
-@ConditionalOnProperty("mint.enabled")
 class Mint(val restTemplate: RestTemplate) : AutoCloseable {
     override fun close() {
         driver.quit()
@@ -43,6 +42,13 @@ class Mint(val restTemplate: RestTemplate) : AutoCloseable {
         driver.findElementById("ius-password").sendKeys(password)
         logger.info("Submitting login form")
         driver.findElementById("ius-sign-in-submit-btn").submit()
+
+        // TODO: pick the email option and submit
+
+//        val code = GmailQuickstart.getVerificationCode()
+//        driver.findElementById("ius-code???").sendKeys(code)
+//        driver.findElementById("ius-code-submit-btn??").submit()
+
 
         while (!driver.currentUrl.startsWith("https://mint.intuit.com/overview.event")) {
             logger.info("Waiting for page to redirect after login")
