@@ -40,7 +40,9 @@ data class Transaction(
         @JsonProperty("credit")
         CREDIT,
         @JsonProperty("debit")
-        DEBIT
+        DEBIT,
+        @JsonProperty("merged")
+        MERGED
     }
 
     val absoluteAmount: Float
@@ -71,15 +73,5 @@ data class Transaction(
         } catch (e: ParseException) {
             throw RuntimeException(e)
         }
-    }
-}
-
-
-
-typealias F<A, B> = (A) -> B
-
-infix fun <A, B, C> F<A,B>.then(other: F<B, C>): F<A, C> {
-    return {
-        other(this(it))
     }
 }

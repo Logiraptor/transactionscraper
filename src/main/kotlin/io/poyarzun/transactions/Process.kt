@@ -42,34 +42,20 @@ fun main(args: Array<String>) {
         it.dateTs.after(cal.time)
     }
 
-    val groupedTransactions = transactions.groupBy { it.description }
+    val bills = transactions.groupBy { it.description to it.accountName }.map { Bill(it.value) }
 
-    val descriptionToCount = groupedTransactions.mapValues { (_, value) ->
-        value.distinctBy { it.dateTs }.size
-    }
-
-    val descriptionToDistinctDays = groupedTransactions.mapValues { (_, value) ->
-        value.map { it.dateTs.dayOfMonth() }.distinct()
-    }
-
-    val descriptionToBillFactor = groupedTransactions.mapValues { (key, _) ->
-        val repeated: Double = descriptionToCount[key]?.toDouble() ?: 0.0
-        val recurring: Double = descriptionToDistinctDays[key]?.size?.toDouble() ?: 0.0
-        repeated / recurring
-    }
-
-    val descriptionToAmount = groupedTransactions.mapValues { (_, value) ->
-        val amounts = value.map { it.absoluteAmount }.sorted()
-        amounts.first()..amounts.last()
-    }
-
-    groupedTransactions.asIterable().sortedBy { descriptionToBillFactor[it.key] }.forEach {
-        val desc = it.key
+    bills.sortedBy { it.billFactor }.forEach {
+        val desc = it.description
+        println()
         println(desc)
-        println(" - Bill factor: ${descriptionToBillFactor[desc]}")
-        println(" - Amount: ${descriptionToAmount[desc]}")
-        println(" - Occurred ${descriptionToCount[desc]} times")
-        println(" - Occurs on ${descriptionToDistinctDays[desc]?.size} distinct days: ${descriptionToDistinctDays[desc]}")
+        println(it.accountName)
+        println(" - Bill factor: ${it.billFactor}")
+        println(" - Amount: ${it.amount}")
+        println(" - Occurred ${it.count} times")
+        println(" - Occurs on ${it.distinctDays} distinct days")
+        println(" - Intercharge Duration Avg: ${it.interchargeDurationAverage}")
+        println(" - Intercharge Duration Rng: ${it.interchargeDurationRange}")
+//        it.printDayDist()
     }
 }
 
