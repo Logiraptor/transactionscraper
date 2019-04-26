@@ -5,10 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import java.util.*
 import java.text.SimpleDateFormat
-import org.springframework.data.elasticsearch.annotations.Document
 import java.text.ParseException
 import javax.persistence.Id
-
 
 @JsonPropertyOrder(
     "date",
@@ -21,7 +19,6 @@ import javax.persistence.Id
     "labels",
     "notes"
 )
-@Document(indexName = "transactions", type = "transaction")
 data class Transaction(
     @Id
     val id: String = UUID.randomUUID().toString(),

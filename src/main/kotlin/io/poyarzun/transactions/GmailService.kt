@@ -11,6 +11,7 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.google.api.services.gmail.Gmail
 import com.google.api.services.gmail.GmailScopes
+import com.google.api.services.gmail.model.Message
 import org.jsoup.Jsoup
 import org.springframework.core.io.ClassPathResource
 import java.nio.charset.Charset
@@ -18,14 +19,14 @@ import java.time.Instant
 import java.util.*
 
 
-object GmailQuickstart {
+object GmailService {
 
-    val APPLICATION_NAME = "Gmail API Java Quickstart"
-    val JSON_FACTORY = JacksonFactory.getDefaultInstance()
-    val TOKENS_DIRECTORY_PATH = "tokens"
+    private const val APPLICATION_NAME = "Gmail API Java Quickstart"
+    private val JSON_FACTORY = JacksonFactory.getDefaultInstance()
+    private const val TOKENS_DIRECTORY_PATH = "tokens"
 
-    val SCOPES = listOf(GmailScopes.GMAIL_READONLY)
-    val CREDENTIALS_FILE_PATH = "credentials.json"
+    private val SCOPES = listOf(GmailScopes.GMAIL_READONLY)
+    private const val CREDENTIALS_FILE_PATH = "credentials.json"
 
 
     /**
@@ -33,7 +34,7 @@ object GmailQuickstart {
      * @param HTTP_TRANSPORT The network HTTP Transport.
      * @return An authorized Credential object.
      */
-    fun getCredentials(HTTP_TRANSPORT: NetHttpTransport): Credential {
+    private fun getCredentials(HTTP_TRANSPORT: NetHttpTransport): Credential {
         // Load client secrets.
         val credentialFile = ClassPathResource(CREDENTIALS_FILE_PATH)
         val clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, credentialFile.inputStream.reader())
@@ -50,13 +51,9 @@ object GmailQuickstart {
 
     fun getVerificationCode(): String {
         // Build a new authorized API client service.
-        val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport()
-        val service = Gmail.Builder(
-            HTTP_TRANSPORT,
-            GmailQuickstart.JSON_FACTORY,
-            GmailQuickstart.getCredentials(HTTP_TRANSPORT)
-        )
-            .setApplicationName(GmailQuickstart.APPLICATION_NAME)
+        val httpTransport = GoogleNetHttpTransport.newTrustedTransport()
+        val service = Gmail.Builder(httpTransport, GmailService.JSON_FACTORY, GmailService.getCredentials(httpTransport))
+            .setApplicationName(GmailService.APPLICATION_NAME)
             .build()
 
         var code = getCode(service)
@@ -67,15 +64,21 @@ object GmailQuickstart {
         return code
     }
 
-    fun getCode(service: Gmail): String? {
+    private fun getCode(service: Gmail): String? {
         // Print the labels in the user's account.
         val user = "me"
         val listRequest = service.users().messages().list(user)
-        listRequest.q = "\"Verification code:\" AND Mint"
+        listRequest.q = "\"Verification code:\" AND mint"
         val listResponse = listRequest.execute()
         val fiveMinutesAgo = Instant.now().plusSeconds(-60)
-        listResponse.messages.forEach {
-            val message = service.users().messages().get(user, it.id).execute()
+        val messages: List<Message>? = listResponse.messages
+        if (messages == null) {
+            println("List response returned null")
+            return null
+        }
+
+        messages.forEach { messagePayload ->
+            val message = service.users().messages().get(user, messagePayload.id).execute()
             val date = Date(message.internalDate)
             if (date.toInstant().isBefore(fiveMinutesAgo)) {
                 println("Too old: $date")
@@ -85,7 +88,6 @@ object GmailQuickstart {
             val data = message.payload.body.data
             val body = Base64.getUrlDecoder().decode(data).toString(Charset.defaultCharset())
 
-            println("--------------")
             println(body)
 
             val document = Jsoup.parse(body)

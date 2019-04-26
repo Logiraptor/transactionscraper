@@ -42,7 +42,7 @@ repositories {
 
 dependencies {
     compile('org.elasticsearch.client:transport')
-    compile('org.springframework.boot:spring-boot-starter-data-elasticsearch')
+    compile('org.springframework.boot:spring-boot-starter-integration')
     compile('org.springframework.boot:spring-boot-starter-data-jpa')
     compile('org.springframework.boot:spring-boot-starter-web')
     compile('com.fasterxml.jackson.module:jackson-module-kotlin')
